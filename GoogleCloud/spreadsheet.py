@@ -26,7 +26,7 @@ if os.path.exists(args.secret_key):
         args.secret_key, ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     )
 else:
-    print(f'A non-existent secret_key was passed {args.secret_key}. The file must be in json format')
+    print(f'secret_key {args.secret_key} not found.')
     quit()
 httpAuth = credentials.authorize(httplib2.Http())
 service = apiclient.discovery.build('sheets', 'v4', http=httpAuth)
@@ -42,15 +42,14 @@ else:
     names = re.split(',', args.name_sheet.strip('[]'))
     assert '' not in names, f'Wrong sheet format - {names}'
 ranges_data = re.split(',', args.range_data.strip('[]'))
-
+assert '' not in ranges_data, f'Wrong range format - {ranges_data}'
 for name, ranges in zip(names, ranges_data*len(names)):
     range_name = name+'!'+ranges
-    print(range_name)
     try:
         table = service.spreadsheets().values().get(spreadsheetId=args.id_sheet, range=range_name).execute()
     except:
-        print(f'Invalid values passed {name} {ranges}. Wrong range_name or wrong id_sheet or wrong name_sheet. '
-              'The link may be restricted in access ')
+        print(f'Invalid values passed . Wrong range_name - {ranges} or wrong id_sheet - {args.id_sheet} or '
+              f'wrong name_sheet - {name}. The link may be restricted in access ')
         quit()
     lines = table.get('values', None)
     if not lines:
